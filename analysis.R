@@ -18,8 +18,12 @@ if (!file.exists(joss_rds)) {
 get_desc <- function(i, dt, path = "DESCRIPTION") {
     print(i)
     out_path <- paste0("data/", "DESCRIPTION", "_", as.character(i))
-    if(!file.exists(out_path)){
-      download.file(paste0(dt$repo_url[i], "/raw/master/DESCRIPTION"), path)
+    if(!file.exists(out_path)) {
+      tryCatch({
+        download.file(paste0(dt$repo_url[i], "/raw/master/DESCRIPTION"), path)
+        }, error = function(e) {
+            download.file(paste0(dt$repo_url[i], "/raw/main/DESCRIPTION"), path)
+        })
       Sys.sleep(runif(1, max = 3))
       file.copy(path, out_path)
     }
