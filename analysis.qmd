@@ -1,5 +1,5 @@
 ---
-title: "Are R project dependencies getting more complex over time?"
+title: "Are R project dependencies getting more numerous over time?"
 format:
     html:
         code-fold: false
