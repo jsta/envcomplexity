@@ -1,26 +1,38 @@
+---
+title: "Are R project dependencies getting more complex over time?"
+format:
+    html:
+        code-fold: false
+        fig_crop: yes
+---
+
+trying pre-cleaned JOSS data at https://github.com/openjournals/joss-analytics
+
+```{R, load packages}
+#| output: false 
+library(gh)
+library(desc)
 library(dplyr)
 library(ggplot2)
+```
 
-# --- trying pre-cleaned JOSS data
-# https://github.com/openjournals/joss-analytics
-
-library(desc)
-library(gh)
-
+```{R, download joss archive}
 joss_rds <- "data/joss_R.rds"
 # unlink(joss_rds)
 if (!file.exists(joss_rds)) {
   papers <- readRDS(gzcon(url(
-    "https://github.com/openjournals/joss-analytics/blob/gh-pages/joss_submission_analytics.rds?raw=true")))
-  # head(dplyr::select(papers, starts_with("repo")))
+    "https://github.com/openjournals/joss-analytics/blob/gh-pages/joss_submission_analytics.rds?raw=true")))  
   dt <- dplyr::filter(papers, repo_language == "R")
   dt <- dplyr::filter(dt,
     repo_url != "https://github.com/hansenjohnson/WhaleMap")
   saveRDS(dt, "data/joss_R.rds")
 }
+dt <- readRDS(joss_rds)
+```
 
+```{R download DESCRIPTION files, eval=FALSE }
 get_desc <- function(i, dt, path = "DESCRIPTION") {
-    print(i)
+    # print(i)
     out_path <- paste0("data/", "DESCRIPTION", "_", as.character(i))
     if(!file.exists(out_path)) {
       tryCatch({
@@ -41,8 +53,12 @@ get_desc <- function(i, dt, path = "DESCRIPTION") {
     }
 }
 
+lapply(seq_len(nrow(dt)), function(i) get_desc(i, dt))
+```
+
+```{R count deps, warning=FALSE }
 get_deps <- function(i) {
-    print(i)
+    # print(i)
     path <- paste0("data/", "DESCRIPTION", "_", as.character(i))
     if(!file.exists(path)) {
       return(i)
@@ -54,17 +70,18 @@ get_deps <- function(i) {
     deps$i <- i
     deps
 }
-
-dt <- readRDS(joss_rds)
-lapply(seq_len(nrow(dt)), function(i) get_desc(i, dt))
-
 deps <- lapply(seq_len(nrow(dt)), function(i) get_deps(i))
+```
+
+```{R organize data}
 n_deps <- unlist(lapply(deps, function(x) ifelse(is.null(nrow(x)), NA, nrow(x))))
 pkg_names <- unlist(lapply(deps, function(x) substr(x["pkg_name"][[1]][1], 0, 17)))
 res <- data.frame(pkg_name = pkg_names, n_dep = n_deps)
 res <- res[seq_len(max(which(!is.na(res["n_dep"])))), ]
-
 res_dt <- cbind(res, dt[seq_len(nrow(res)),])
+```
+
+```{R n_deps, warning=FALSE }
 ggplot(res_dt, aes(published.date, n_dep)) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
@@ -72,13 +89,5 @@ ggplot(res_dt, aes(published.date, n_dep)) +
   labs(x = "", y = "# of listed dependencies") +
   ggtitle(paste0("n = ", nrow(res_dt))) +
   theme_classic() +
-  coord_fixed(22)
-
-ggsave("n_deps.png")
-
-# --- trying pure Zenodo
-# library(zen4R)
-# dt <- read.csv("data/asclepias_broker_citations_201901_processed.csv")
-# zen <- ZenodoManager$new()
-# zen$getRecordByDOI("10.5281/zenodo.12158")
-# test <- zen$getRecordByConceptDOI("10.5281/zenodo.592762")
+  coord_fixed(28)
+```

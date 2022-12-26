@@ -1,5 +1,5 @@
 ## Are R project dependencies getting more complex over time?
 
 <p align="center">
-<img src="n_deps.png" height=700/></a>
+<img src="analysis_files/figure-html/n_deps-1.png" height=500/></a>
 </p>
