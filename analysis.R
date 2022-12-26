@@ -73,9 +73,10 @@ ggplot(res_dt, aes(published.date, n_dep)) +
   ylim(0, 50) +
   labs(x = "", y = "# of listed dependencies") +
   ggtitle(paste0("n = ", nrow(res_dt))) +
-  theme_classic()
+  theme_classic() +
+  coord_fixed(22)
 
-
+ggsave("n_deps.png")
 
 # --- trying pure Zenodo
 # library(zen4R)
